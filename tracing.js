@@ -15,7 +15,7 @@ const { SemanticResourceAttributes, SemanticAttributes } = require('@opentelemet
 // );
 
 // Add Lightstep access token here
-const accessToken = '<LS_ACCESS_TOKEN>';
+const accessToken = '<accessToken>';
 const exporter = new OTLPTraceExporter({
   url: 'https://ingest.lightstep.com/traces/otlp/v0.9',
   headers: {
@@ -25,7 +25,7 @@ const exporter = new OTLPTraceExporter({
 
 const provider = new BasicTracerProvider({
   resource: new Resource({
-    [SemanticResourceAttributes.SERVICE_NAME]: 'basic-service',
+    [SemanticResourceAttributes.SERVICE_NAME]: 'Instructor-service',
   }),
 });
 provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
@@ -48,14 +48,28 @@ const parent = tracer.startSpan('parent', {
  function bblSort(arr){
      
  for(var i = 0; i < arr.length; i++){
-//Create child span from active context
+//Fetch active context and create a child span
   const ctx = opentelemetry.trace.setSpan(opentelemetry.context.active(), parent);
-  const span = tracer.startSpan('firstLoop', undefined, ctx);
-  span.setAttribute("iteration", i.toString());
+  const span = tracer.startSpan('outerLoop', undefined, ctx);
+  span.setAttribute("outer iteration", i.toString());
+  if ( i > 10){
+    span.recordException("I've done enough work")
+    span.setStatus({
+      code: opentelemetry.SpanStatusCode.ERROR,
+      message: 'Error.'
+    })
+   span.end()
+   throw 'Array too large! Stopping execution';
+   break;
+  }
 // Last i elements are already in place  
    for(var j = 0; j < ( arr.length - i -1 ); j++){
+     
      //Create innermost span
-     const innerSpan = tracer.startSpan('secondLoop', undefined, opentelemetry.context.active());
+     //Fetch active context and create a child span
+     const ctx2 = opentelemetry.trace.setSpan(opentelemetry.context.active(), span);
+     const innerSpan = tracer.startSpan('innerLoop', undefined, ctx2);
+     innerSpan.setAttribute("inner iteration", j.toString());
      // Checking if the item at present iteration 
      // is greater than the next iteration
      if(arr[j] > arr[j+1]){
@@ -64,9 +78,16 @@ const parent = tracer.startSpan('parent', {
        var temp = arr[j]
        arr[j] = arr[j + 1]
        arr[j+1] = temp
+
+       // If the condition is true then add an event
+       innerSpan.addEvent('swapLog', {
+         'log.severity': 'event',
+         'log.message': 'Swap occurred',
+         'iteration': j.toString(),
+       });
      }
      //End second loop span
-     span.end();
+     innerSpan.end();
    }
    //End first loop span
    span.end();
@@ -76,11 +97,16 @@ const parent = tracer.startSpan('parent', {
 }
   
 // This is our unsorted array
-var arr = [234, 43, 55, 63,  5, 6, 235, 547];
+var arr = [234, 43, 55, 63,  5, 6, 235, 547, 100, 232, 14, 42, 1000, 4329, 433];
   
   
 // Now pass this array to the bblSort() function
-bblSort(arr);
+  try {
+    bblSort(arr);
+  } catch(e) {
+    parent.recordException(e),
+    parent.setStatus({ code: opentelemetry.SpanStatusCode.ERROR })
+  }
 
 // Be sure to end the span.
 parent.end();
@@ -90,45 +116,3 @@ setTimeout(() => {
   // flush and close the connection.
   exporter.shutdown();
 }, 2000);
-
-
-
-
-
-
-
-
-// for (let i = 0; i < 10; i += 1) {
-//   doWork(parentSpan);
-// }
-// // Be sure to end the span.
-// parentSpan.end();
-
-
-// function doWork(parent) {
-//   // Start another span. In this example, the main method already started a
-//   // span, so that'll be the parent span, and this will be a child span.
-//   const ctx = opentelemetry.trace.setSpan(opentelemetry.context.active(), parent);
-//   const span = tracer.startSpan('doWork', undefined, ctx);
-
-//   // simulate some random work.
-//   for (let i = 0; i <= Math.floor(Math.random() * 40000000); i += 1) {
-//     // empty
-//   }
-//   // Set attributes to the span.
-//   span.setAttribute('key', 'value');
-
-//   span.setAttribute('mapAndArrayValue', [
-//     0, 1, 2.25, 'otel', {
-//       foo: 'bar',
-//       baz: 'json',
-//       array: [1, 2, 'boom'],
-//     },
-//   ]);
-
-//   // Annotate our span to capture metadata about our operation
-//   span.addEvent('invoking doWork');
-
-//   // end span
-//   span.end();
-// }
