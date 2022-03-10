@@ -1,58 +1,53 @@
 # Overview
 
-<!-- TODO: This example needs an update. -->
-
 This example shows how to use [@opentelemetry/exporter-otlp-http](https://github.com/open-telemetry/opentelemetry-js/tree/v0.26.0/experimental/packages/opentelemetry-exporter-otlp-http) to instrument a simple Node.js application.
+This example will export spans data simultaneously using [Exporter Collector](https://github.com/open-telemetry/opentelemetry-js/tree/v0.26.0/experimental/packages/opentelemetry-exporter-otlp-http) and grpc. It will use [proto format](https://github.com/open-telemetry/opentelemetry-proto). The goal is for us to be able to create spans and ultimately see them in the Lightstep UI. 
 
-This example will export spans data simultaneously using [Exporter Collector](https://github.com/open-telemetry/opentelemetry-js/tree/v0.26.0/experimental/packages/opentelemetry-exporter-otlp-http) and grpc. It will use [proto format](https://github.com/open-telemetry/opentelemetry-proto).
+## Pre-Work
+
+* * *
+
+* You will need `npm` to be installed. To check and see if you have it installed run `npm -v` to see the version.
+* You will also need Docker to be installed. If you do not have Docker head over to [their website](https://www.docker.com/products/docker-desktop) and install Docker Desktop. Once installed, you'll need to make sure that it is running since the `docker:start` command depends on being able to connect to the Docker daemon. 
 
 ## Installation
 
-```shell script
+* * *
+
+```
 # from this directory
 npm install
 ```
 
 ## Run the Application
 
-1. Run docker
+* * *
 
-    ```shell script
-    # from this directory
-    npm run docker:start
-    ```
+1. **Run docker.** If you are having trouble make sure that Docker Desktop is running so we can connect to the Docker daemon. 
 
-2. Run tracing app
+```
+# from this directory
+npm run docker:start
+```
 
-    ```shell script
-    # from this directory
-    npm run start:tracing
-    ```
+1. **Run tracing app.** Once you run this part of the code, spans should show up in your console. To send traces to Lightstep, make sure that `accessToken` is set inside the `tracing.js` file.
 
-3. Run metrics app
+```
+# from this directory
+npm run start:tracing
+```
 
-    ```shell script
-    # from this directory
-    npm run start:metrics
-    ```
+You should see traces exported to your console and your instance of Lightstep if you appropriately configured your access token.
 
-4. Open page at <http://localhost:9411/zipkin/> -  you should be able to see the spans in zipkin
-![Screenshot of the running example](images/spans.png)
+## Useful Links
 
-### Prometheus UI
+* * *
 
-The prometheus client will be available at <http://localhost:9090>.
+* For more information on OpenTelemetry, visit: https://opentelemetry.io/
+* For more information on JavaScript-specific implementation of OpenTelemetry, visit: https://opentelemetry.io/docs/instrumentation/js/
+* For more information on tracing, visit: https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-sdk-trace-base
 
-Note: It may take some time for the application metrics to appear on the Prometheus dashboard.
+## License
 
-<p align="center"><img src="../prometheus/images/prom-counter.png?raw=true"/></p>
-<p align="center"><img src="../prometheus/images/prom-updowncounter.png?raw=true"/></p>
-
-## Useful links
-
-- For more information on OpenTelemetry, visit: <https://opentelemetry.io/>
-- For more information on tracing, visit: <https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-sdk-trace-base>
-
-## LICENSE
-
+* * *
 Apache License 2.0
