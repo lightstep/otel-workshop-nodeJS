@@ -16,23 +16,17 @@ const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventi
 
 // Add Lightstep access token here
 const accessToken = '<LS_ACCESS_TOKEN>';
-const exporter = new OTLPTraceExporter({
-  url: 'https://ingest.lightstep.com/traces/otlp/v0.9',
-  headers: {
-    'Lightstep-Access-Token': accessToken
-  },
-});
+
 
 const provider = new BasicTracerProvider({
   resource: new Resource({
-    [SemanticResourceAttributes.SERVICE_NAME]: 'basic-service',
+    [SemanticResourceAttributes.SERVICE_NAME]: 'MY-service',
   }),
 });
-provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
 provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
 provider.register();
 
-const tracer = opentelemetry.trace.getTracer('example-otlp-exporter-node');
+const tracer = opentelemetry.trace.getTracer('myTracer');
 
 // Create a span. A span must be closed.
 const parentSpan = tracer.startSpan('main');
